@@ -31,8 +31,12 @@ export function cacheMiddleware(ttl = DEFAULT_TTL) {
       return;
     }
 
-    const tenantSlug =
-      (c.get("tenant") as { slug: string } | undefined)?.slug ?? "global";
+    const tenantSlug = (c.get("tenant") as { slug: string } | undefined)?.slug;
+    if (!tenantSlug) {
+      await next();
+      return;
+    }
+
     const url = new URL(c.req.url);
     const cacheKey = `${tenantSlug}:${url.pathname}:${url.search}`;
 
@@ -59,7 +63,16 @@ export function cacheMiddleware(ttl = DEFAULT_TTL) {
         evictExpired(ttl);
       }
       if (cache.size >= MAX_ENTRIES) {
-        cache.clear();
+        // Evict the single oldest entry rather than clearing the whole cache
+        let oldestKey: string | undefined;
+        let oldestTime = Number.POSITIVE_INFINITY;
+        for (const [key, entry] of cache) {
+          if (entry.timestamp < oldestTime) {
+            oldestTime = entry.timestamp;
+            oldestKey = key;
+          }
+        }
+        if (oldestKey !== undefined) cache.delete(oldestKey);
       }
 
       const cloned = c.res.clone();

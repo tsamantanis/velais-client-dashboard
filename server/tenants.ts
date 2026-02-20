@@ -4,7 +4,7 @@ export interface TenantConfig {
   team: string;
 }
 
-const tenantMap: Record<string, TenantConfig> = {
+export const tenantMap: Record<string, TenantConfig> = {
   org_01KHVPY7F02C9NRDYWD010RZP9: {
     slug: "foresound-srl",
     project: "Foresound Srl -  Custom AI Product Development",

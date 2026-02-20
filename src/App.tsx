@@ -1,5 +1,12 @@
 import { useAuth } from "@workos-inc/authkit-react";
-import { Activity, Suspense, lazy, startTransition, useCallback, useState } from "react";
+import {
+  Activity,
+  lazy,
+  Suspense,
+  startTransition,
+  useCallback,
+  useState,
+} from "react";
 import { Board } from "./components/kanban/Board.js";
 import { Loader } from "./components/Loader.js";
 import { LoginPage } from "./components/LoginPage.js";

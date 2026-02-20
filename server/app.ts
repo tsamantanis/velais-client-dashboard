@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { logger } from "hono/logger";
 import type { AuthEnv } from "./middleware/auth.js";
 import { authMiddleware } from "./middleware/auth.js";
 import { cacheMiddleware } from "./middleware/cache.js";
@@ -6,20 +7,26 @@ import iterations from "./routes/iterations.js";
 import stories from "./routes/stories.js";
 import summary from "./routes/summary.js";
 import { getCurrentIteration } from "./services/azure-devops.js";
+import { tenantMap } from "./tenants.js";
 
 const app = new Hono<AuthEnv>().basePath("/api");
+
+app.use(logger());
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 
 app.get("/health/azure", async (c) => {
-  const testProject = "Foresound Srl -  Custom AI Product Development";
-  const testTeam = "Foresound Srl -  Custom AI Product Development Team";
+  const firstTenant = Object.values(tenantMap)[0];
+  if (!firstTenant) {
+    return c.json({ status: "error", error: "No tenants configured" }, 500);
+  }
   try {
-    const iteration = await getCurrentIteration(testProject, testTeam);
+    const iteration = await getCurrentIteration(
+      firstTenant.project,
+      firstTenant.team,
+    );
     return c.json({
       status: "ok",
-      org: process.env.AZURE_DEVOPS_ORG,
-      project: testProject,
       currentIteration: iteration?.name ?? null,
     });
   } catch (err) {

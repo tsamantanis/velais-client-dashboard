@@ -2,6 +2,16 @@ const org = process.env.AZURE_DEVOPS_ORG ?? "";
 const pat = process.env.AZURE_DEVOPS_PAT ?? "";
 const authHeader = `Basic ${Buffer.from(`:${pat}`).toString("base64")}`;
 
+// Azure Work Items API hard limit per batch request
+const AZURE_BATCH_SIZE = 200;
+
+const AZURE_TIMEOUT_MS = 30_000;
+
+/** Escape single quotes for safe WIQL string interpolation. */
+function wiqlEscape(value: string): string {
+  return value.replace(/'/g, "''");
+}
+
 interface AzureIteration {
   id: string;
   name: string;
@@ -23,38 +33,58 @@ interface AzureWorkItem {
 }
 
 async function azureFetch<T>(url: string): Promise<T> {
-  const res = await fetch(url, {
-    headers: {
-      Authorization: authHeader,
-      "Content-Type": "application/json",
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AZURE_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: {
+        Authorization: authHeader,
+        "Content-Type": "application/json",
+      },
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!res.ok) {
     const body = await res.text().catch(() => "(no body)");
-    throw new Error(
-      `Azure DevOps API error: ${res.status} ${res.statusText} | URL: ${url} | Body: ${body}`,
+    console.error(
+      `[azure] GET ${res.status} ${res.statusText} | URL: ${url} | Body: ${body}`,
     );
+    throw new Error(`Azure DevOps API error: ${res.status} ${res.statusText}`);
   }
 
   return res.json() as Promise<T>;
 }
 
 async function azurePost<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: authHeader,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AZURE_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: authHeader,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!res.ok) {
     const resBody = await res.text().catch(() => "(no body)");
-    throw new Error(
-      `Azure DevOps API error: ${res.status} ${res.statusText} | URL: ${url} | Body: ${resBody}`,
+    console.error(
+      `[azure] POST ${res.status} ${res.statusText} | URL: ${url} | Body: ${resBody}`,
     );
+    throw new Error(`Azure DevOps API error: ${res.status} ${res.statusText}`);
   }
 
   return res.json() as Promise<T>;
@@ -100,9 +130,9 @@ export async function queryWorkItems(
   const wiql = `
     SELECT [System.Id]
     FROM WorkItems
-    WHERE [System.TeamProject] = '${project}'
+    WHERE [System.TeamProject] = '${wiqlEscape(project)}'
       AND [System.WorkItemType] = 'User Story'
-      AND [System.IterationPath] UNDER '${iterationPath}'
+      AND [System.IterationPath] UNDER '${wiqlEscape(iterationPath)}'
     ORDER BY [Microsoft.VSTS.Common.Priority] ASC, [System.ChangedDate] DESC
   `;
 
@@ -115,11 +145,10 @@ export async function getWorkItemDetails(
 ): Promise<AzureWorkItem[]> {
   if (ids.length === 0) return [];
 
-  const batchSize = 200;
   const results: AzureWorkItem[] = [];
 
-  for (let i = 0; i < ids.length; i += batchSize) {
-    const batch = ids.slice(i, i + batchSize);
+  for (let i = 0; i < ids.length; i += AZURE_BATCH_SIZE) {
+    const batch = ids.slice(i, i + AZURE_BATCH_SIZE);
     const fields = [
       "System.Id",
       "System.Title",

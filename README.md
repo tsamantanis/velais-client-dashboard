@@ -1,10 +1,10 @@
 # Velais Client Dashboard
 
-A full-stack sprint management dashboard that connects to Azure DevOps and displays work items across Kanban, table, and analytics views.
+A full-stack sprint management dashboard that connects to Azure DevOps and displays work items across Kanban, table, and analytics views. Features a branded loading experience and animated login page.
 
 ## Tech Stack
 
-- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS 4, TanStack React Query, Recharts
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS 4, TanStack React Query, Recharts, GSAP
 - **Backend:** Hono, WorkOS (auth), Azure DevOps API
 - **Runtime:** Bun
 - **Deployment:** Vercel (edge functions)
@@ -74,12 +74,21 @@ A full-stack sprint management dashboard that connects to Azure DevOps and displ
 src/                  React client
   components/
     ui/               shadcn-style primitives
-    kanban/            Kanban board (Board, Column, Card)
+    kanban/           Kanban board (Board, Column, Card)
     table/            Table view with filters
     analytics/        Charts (StateBreakdown, ProgressSummary, AssigneeBreakdown)
-    layout/           Shell and SprintHeader
-  hooks/              useStories, useSummary (React Query)
-  lib/                API client, utilities, constants
+    layout/           Shell (with project name in header) and SprintHeader
+    Loader.tsx        Branded full-screen loading overlay with animated SVG logo
+    LoginPage.tsx     Branded login page with GSAP entrance animations
+  hooks/
+    useStories.ts     React Query wrapper for stories
+    useSummary.ts     React Query wrapper for sprint summary
+    useCascadeAnimation.ts  GSAP page-entry cascade animation hook
+  lib/
+    gsap.ts           GSAP singleton: registers CustomEase, exports gsap + useGSAP
+    logo.ts           Shared SVG viewBox and path constants for the Velais logo
+    api.ts            API client
+    utils.ts          Utilities and cn() helper
 
 server/               Hono backend
   middleware/         Auth (WorkOS JWT) and caching (in-memory, 10-min TTL)
@@ -92,6 +101,14 @@ shared/               Types and utilities shared between client and server
 api/                  Vercel edge function catch-all
 ```
 
+## Application Flow
+
+The app renders in three sequential phases on every load:
+
+1. **Loader** — Full-screen branded overlay shown while WorkOS auth resolves. Displays an animated SVG logo with a diagonal fill progress bar and a shimmer sweep. Cycles status messages and fades out once auth is ready.
+2. **Login page** — Shown if no authenticated user is found. GSAP timeline animates the logo, wordmark, divider, subtitle, sign-in button, and footer into view in sequence.
+3. **Dashboard** — The authenticated shell. A cascade animation slides the header in from above and staggers the title, stats, section labels, and cards into view.
+
 ## Architecture
 
 ### Authentication
@@ -100,11 +117,20 @@ Users authenticate via WorkOS AuthKit. The backend verifies JWT tokens on every 
 
 ### Multi-Tenancy
 
-Each organization maps to an Azure DevOps project and team via `server/tenants.ts`. Cache keys are scoped per-tenant to prevent data leaks.
+Each organization maps to an Azure DevOps project and team via `server/tenants.ts`. Cache keys are scoped per-tenant to prevent data leaks. The resolved project name from `SprintSummary` is displayed in the dashboard header.
 
 ### Caching
 
 The backend uses an in-memory cache with a 10-minute TTL, ETag support for conditional responses, and LRU eviction at 500 entries. The client layer uses React Query with a matching 10-minute stale time.
+
+### Animations
+
+GSAP (`gsap` + `@gsap/react`) drives all motion. The `CustomEase` plugin is registered globally via `src/lib/gsap.ts` with a `"snappy"` preset. Elements that participate in page-entry animations are marked with `data-gsap="<role>"` attributes and targeted by `useCascadeAnimation`. The `[data-gsap]` CSS selector applies `will-change: transform, opacity` for compositing layer promotion.
+
+### Typography
+
+- **Headings (`font-heading`):** Onsite Extended (self-hosted WOFF2/WOFF)
+- **Body and mono (`font-body`, `font-mono`):** Host Grotesk (Google Fonts CDN)
 
 ### API Endpoints
 

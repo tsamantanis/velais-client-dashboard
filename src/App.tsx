@@ -1,16 +1,27 @@
 import { useAuth } from "@workos-inc/authkit-react";
-import { useCallback, useState } from "react";
-import { AssigneeBreakdown } from "./components/analytics/AssigneeBreakdown.js";
-import { StateBreakdown } from "./components/analytics/StateBreakdown.js";
+import { Activity, Suspense, lazy, startTransition, useCallback, useState } from "react";
 import { Board } from "./components/kanban/Board.js";
 import { Loader } from "./components/Loader.js";
 import { LoginPage } from "./components/LoginPage.js";
 import { Shell } from "./components/layout/Shell.js";
 import { StoriesTable } from "./components/table/StoriesTable.js";
+import { Skeleton } from "./components/ui/Skeleton.js";
 import { TooltipProvider } from "./components/ui/tooltip.js";
 import { useStories } from "./hooks/useStories.js";
 import { useSummary } from "./hooks/useSummary.js";
 import { setGetAccessToken } from "./lib/api.js";
+
+const StateBreakdown = lazy(() =>
+  import("./components/analytics/StateBreakdown.js").then((m) => ({
+    default: m.StateBreakdown,
+  })),
+);
+
+const AssigneeBreakdown = lazy(() =>
+  import("./components/analytics/AssigneeBreakdown.js").then((m) => ({
+    default: m.AssigneeBreakdown,
+  })),
+);
 
 export function App() {
   const {
@@ -66,6 +77,8 @@ function AuthenticatedShell({
   );
 }
 
+const ANALYTICS_SKELETON = <Skeleton className="h-48 rounded-md" />;
+
 function Dashboard({
   summary,
 }: {
@@ -73,6 +86,10 @@ function Dashboard({
 }) {
   const { data: stories, isLoading: storiesLoading } = useStories();
   const [view, setView] = useState<"kanban" | "table">("kanban");
+
+  function handleViewChange(newView: "kanban" | "table") {
+    startTransition(() => setView(newView));
+  }
 
   return (
     <>
@@ -85,9 +102,12 @@ function Dashboard({
             Analytics
           </h3>
           <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-            {/* <ProgressSummary summary={summary} /> */}
-            <StateBreakdown byState={summary.byState} />
-            <AssigneeBreakdown byAssignee={summary.byAssignee} />
+            <Suspense fallback={ANALYTICS_SKELETON}>
+              <StateBreakdown byState={summary.byState} />
+            </Suspense>
+            <Suspense fallback={ANALYTICS_SKELETON}>
+              <AssigneeBreakdown byAssignee={summary.byAssignee} />
+            </Suspense>
           </div>
         </>
       )}
@@ -98,7 +118,7 @@ function Dashboard({
       >
         <button
           type="button"
-          onClick={() => setView("kanban")}
+          onClick={() => handleViewChange("kanban")}
           className={`rounded-sm px-3 py-1.5 text-sm font-medium tracking-[0.06em] uppercase transition-colors ${
             view === "kanban"
               ? "bg-bg-card-hover text-text-accent border-b-2 border-interactive"
@@ -109,7 +129,7 @@ function Dashboard({
         </button>
         <button
           type="button"
-          onClick={() => setView("table")}
+          onClick={() => handleViewChange("table")}
           className={`rounded-sm px-3 py-1.5 text-sm font-medium tracking-[0.06em] uppercase transition-colors ${
             view === "table"
               ? "bg-bg-card-hover text-text-accent border-b-2 border-interactive"
@@ -121,11 +141,12 @@ function Dashboard({
       </div>
 
       <div data-gsap="section-label">
-        {view === "kanban" ? (
+        <Activity mode={view === "kanban" ? "visible" : "hidden"}>
           <Board stories={stories} isLoading={storiesLoading} />
-        ) : (
+        </Activity>
+        <Activity mode={view === "table" ? "visible" : "hidden"}>
           <StoriesTable stories={stories} isLoading={storiesLoading} />
-        )}
+        </Activity>
       </div>
     </>
   );

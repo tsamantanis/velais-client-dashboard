@@ -103,16 +103,17 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
 
       <div className="relative z-10 flex flex-col items-center px-6 w-full max-w-sm">
         {/* Logo symbol */}
-        <svg
-          data-login="logo"
-          viewBox={LOGO_VIEWBOX}
-          className="w-20 h-auto mb-6 invisible"
-          xmlns="http://www.w3.org/2000/svg"
-          role="img"
-          aria-label="Velais logo"
-        >
-          <path d={LOGO_PATH} fill="var(--color-soft-sky)" />
-        </svg>
+        <div data-login="logo" className="mb-6 invisible">
+          <svg
+            viewBox={LOGO_VIEWBOX}
+            className="w-20 h-auto"
+            xmlns="http://www.w3.org/2000/svg"
+            role="img"
+            aria-label="Velais logo"
+          >
+            <path d={LOGO_PATH} fill="var(--color-soft-sky)" />
+          </svg>
+        </div>
 
         {/* Wordmark */}
         <h1

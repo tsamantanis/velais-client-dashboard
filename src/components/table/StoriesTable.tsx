@@ -1,4 +1,4 @@
-import type { ClientStory, StoryState } from "@shared/types/index.js";
+import type { ClientStory, Priority, StoryState } from "@shared/types/index.js";
 import { useMemo, useState } from "react";
 import { STATE_COLORS, STATE_ORDER } from "../../lib/constants.js";
 import { Badge } from "../ui/Badge.js";
@@ -21,7 +21,24 @@ interface StoriesTableProps {
 type SortKey = "state" | "assignee" | "priority";
 type SortDir = "asc" | "desc";
 
-const PRIORITY_ORDER = { Critical: 0, High: 1, Medium: 2, Low: 3, Unset: 4 };
+const PRIORITY_ORDER: Record<Priority, number> = {
+  Critical: 0,
+  High: 1,
+  Medium: 2,
+  Low: 3,
+  Unset: 4,
+};
+
+const STATE_INDEX_MAP = new Map(STATE_ORDER.map((s, i) => [s, i]));
+
+const LOADING_SKELETON = (
+  <div className="mb-6">
+    <Skeleton className="mb-2 h-6 w-32" />
+    {Array.from({ length: 5 }).map((_, i) => (
+      <Skeleton key={i} className="mb-1 h-8" />
+    ))}
+  </div>
+);
 
 export function StoriesTable({ stories, isLoading }: StoriesTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("state");
@@ -37,28 +54,26 @@ export function StoriesTable({ stories, isLoading }: StoriesTableProps) {
 
   const filtered = useMemo(() => {
     if (!stories) return [];
-    let result = stories;
-
-    if (stateFilter !== "All") {
-      result = result.filter((s) => s.state === stateFilter);
+    const lowerQuery = searchQuery.toLowerCase();
+    const result: ClientStory[] = [];
+    for (const story of stories) {
+      if (stateFilter !== "All" && story.state !== stateFilter) continue;
+      if (assigneeFilter && story.assignee !== assigneeFilter) continue;
+      if (
+        lowerQuery &&
+        !story.title.toLowerCase().includes(lowerQuery) &&
+        !story.tags.some((t) => t.toLowerCase().includes(lowerQuery))
+      )
+        continue;
+      result.push(story);
     }
-    if (assigneeFilter) {
-      result = result.filter((s) => s.assignee === assigneeFilter);
-    }
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (s) =>
-          s.title.toLowerCase().includes(q) ||
-          s.tags.some((t) => t.toLowerCase().includes(q)),
-      );
-    }
-
-    return [...result].sort((a, b) => {
+    return result.toSorted((a, b) => {
       let cmp = 0;
       switch (sortKey) {
         case "state":
-          cmp = STATE_ORDER.indexOf(a.state) - STATE_ORDER.indexOf(b.state);
+          cmp =
+            (STATE_INDEX_MAP.get(a.state) ?? 0) -
+            (STATE_INDEX_MAP.get(b.state) ?? 0);
           break;
         case "assignee":
           cmp = a.assignee.localeCompare(b.assignee);
@@ -85,16 +100,7 @@ export function StoriesTable({ stories, isLoading }: StoriesTableProps) {
     return sortDir === "asc" ? " ↑" : " ↓";
   }
 
-  if (isLoading) {
-    return (
-      <div className="mb-6">
-        <Skeleton className="mb-2 h-6 w-32" />
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="mb-1 h-8" />
-        ))}
-      </div>
-    );
-  }
+  if (isLoading) return LOADING_SKELETON;
 
   if (!stories) return null;
 

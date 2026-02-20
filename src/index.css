@@ -135,6 +135,12 @@ h6 {
   will-change: transform, opacity;
 }
 
+/* ── Kanban card paint containment ── */
+.kanban-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 80px;
+}
+
 /* ── Pulse dot animation ── */
 @keyframes pulse-dot {
   0%,

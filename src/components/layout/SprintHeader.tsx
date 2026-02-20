@@ -6,15 +6,15 @@ interface SprintHeaderProps {
   isLoading: boolean;
 }
 
+const SPRINT_HEADER_SKELETON = (
+  <div className="mb-6 bg-bg-card border border-border-subtle rounded-md overflow-hidden px-5 py-4">
+    <Skeleton className="mb-2 h-6 w-48" />
+    <Skeleton className="h-4 w-64" />
+  </div>
+);
+
 export function SprintHeader({ summary, isLoading }: SprintHeaderProps) {
-  if (isLoading) {
-    return (
-      <div className="mb-6 bg-bg-card border border-border-subtle rounded-md overflow-hidden px-5 py-4">
-        <Skeleton className="mb-2 h-6 w-48" />
-        <Skeleton className="h-4 w-64" />
-      </div>
-    );
-  }
+  if (isLoading) return SPRINT_HEADER_SKELETON;
 
   if (!summary) return null;
 

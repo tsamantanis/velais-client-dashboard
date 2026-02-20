@@ -8,23 +8,23 @@ interface BoardProps {
   isLoading: boolean;
 }
 
-export function Board({ stories, isLoading }: BoardProps) {
-  if (isLoading) {
-    return (
-      <div className="mb-6 flex gap-3 overflow-x-auto">
-        {STATE_ORDER.map((state) => (
-          <div
-            key={state}
-            className="min-w-[220px] flex-1 rounded-md bg-bg-surface p-2"
-          >
-            <Skeleton className="mb-2 h-6 w-24" />
-            <Skeleton className="mb-2 h-20 rounded-md" />
-            <Skeleton className="h-20 rounded-md" />
-          </div>
-        ))}
+const BOARD_SKELETON = (
+  <div className="mb-6 flex gap-3 overflow-x-auto">
+    {STATE_ORDER.map((state) => (
+      <div
+        key={state}
+        className="min-w-[220px] flex-1 rounded-md bg-bg-surface p-2"
+      >
+        <Skeleton className="mb-2 h-6 w-24" />
+        <Skeleton className="mb-2 h-20 rounded-md" />
+        <Skeleton className="h-20 rounded-md" />
       </div>
-    );
-  }
+    ))}
+  </div>
+);
+
+export function Board({ stories, isLoading }: BoardProps) {
+  if (isLoading) return BOARD_SKELETON;
 
   if (!stories) return null;
 

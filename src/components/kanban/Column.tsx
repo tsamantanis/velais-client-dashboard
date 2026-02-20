@@ -24,7 +24,9 @@ export function Column({ state, stories }: ColumnProps) {
       <ScrollArea className="max-h-[calc(100vh-260px)]">
         <div className="flex flex-col gap-2">
           {stories.map((story) => (
-            <KanbanCard key={story.id} story={story} />
+            <div key={story.id} className="kanban-card">
+              <KanbanCard story={story} />
+            </div>
           ))}
         </div>
       </ScrollArea>

@@ -53,7 +53,8 @@ export function cacheMiddleware(ttl = DEFAULT_TTL) {
       c.header("X-Cache", "HIT");
       c.header("ETag", cached.etag);
       c.header("Cache-Control", "private, max-age=600");
-      return c.json(JSON.parse(cached.body));
+      c.header("Content-Type", "application/json; charset=UTF-8");
+      return c.body(cached.body, 200);
     }
 
     await next();
@@ -79,7 +80,7 @@ export function cacheMiddleware(ttl = DEFAULT_TTL) {
       const body = await cloned.text();
       const etag = generateEtag(body);
 
-      cache.set(cacheKey, { body, etag, timestamp: now });
+      cache.set(cacheKey, { body, etag, timestamp: Date.now() });
 
       c.header("X-Cache", "MISS");
       c.header("ETag", etag);

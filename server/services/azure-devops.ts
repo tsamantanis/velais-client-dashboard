@@ -1,4 +1,4 @@
-const org = process.env.AZURE_DEVOPS_ORG ?? "";
+const org = encodeURIComponent(process.env.AZURE_DEVOPS_ORG ?? "");
 const pat = process.env.AZURE_DEVOPS_PAT ?? "";
 const authHeader = `Basic ${Buffer.from(`:${pat}`).toString("base64")}`;
 
@@ -12,7 +12,7 @@ function wiqlEscape(value: string): string {
   return value.replace(/'/g, "''");
 }
 
-interface AzureIteration {
+export interface AzureIteration {
   id: string;
   name: string;
   path: string;
@@ -27,7 +27,7 @@ interface WiqlResponse {
   workItems: Array<{ id: number; url: string }>;
 }
 
-interface AzureWorkItem {
+export interface AzureWorkItem {
   id: number;
   fields: Record<string, unknown>;
 }
@@ -52,7 +52,7 @@ async function azureFetch<T>(url: string): Promise<T> {
   if (!res.ok) {
     const body = await res.text().catch(() => "(no body)");
     console.error(
-      `[azure] GET ${res.status} ${res.statusText} | URL: ${url} | Body: ${body}`,
+      `[azure] GET ${res.status} ${res.statusText} | Path: ${new URL(url).pathname} | Body: ${body.slice(0, 500)}`,
     );
     throw new Error(`Azure DevOps API error: ${res.status} ${res.statusText}`);
   }
@@ -82,7 +82,7 @@ async function azurePost<T>(url: string, body: unknown): Promise<T> {
   if (!res.ok) {
     const resBody = await res.text().catch(() => "(no body)");
     console.error(
-      `[azure] POST ${res.status} ${res.statusText} | URL: ${url} | Body: ${resBody}`,
+      `[azure] POST ${res.status} ${res.statusText} | Path: ${new URL(url).pathname} | Body: ${resBody.slice(0, 500)}`,
     );
     throw new Error(`Azure DevOps API error: ${res.status} ${res.statusText}`);
   }
@@ -99,10 +99,11 @@ export async function getCurrentIteration(
   const url = `https://dev.azure.com/${org}/${encodedProject}/${encodedTeam}/_apis/work/teamsettings/iterations?api-version=7.1`;
 
   const data = await azureFetch<{ value: AzureIteration[] }>(url);
+  const iterations = data.value ?? [];
   const now = new Date();
 
   // Prefer iteration whose date range covers today
-  const byDate = data.value.find((iter) => {
+  const byDate = iterations.find((iter) => {
     if (!iter.attributes.startDate || !iter.attributes.finishDate) return false;
     const start = new Date(iter.attributes.startDate);
     const end = new Date(iter.attributes.finishDate);
@@ -111,13 +112,13 @@ export async function getCurrentIteration(
   if (byDate) return byDate;
 
   // Fallback: iteration Azure DevOps marks as "current"
-  const byTimeFrame = data.value.find(
+  const byTimeFrame = iterations.find(
     (iter) => iter.attributes.timeFrame === "current",
   );
   if (byTimeFrame) return byTimeFrame;
 
   // Last resort: return the most recent iteration
-  return data.value.at(-1) ?? null;
+  return iterations.at(-1) ?? null;
 }
 
 export async function queryWorkItems(
@@ -137,7 +138,7 @@ export async function queryWorkItems(
   `;
 
   const data = await azurePost<WiqlResponse>(url, { query: wiql });
-  return data.workItems.map((wi) => wi.id);
+  return (data.workItems ?? []).map((wi) => wi.id);
 }
 
 export async function getWorkItemDetails(
@@ -145,26 +146,26 @@ export async function getWorkItemDetails(
 ): Promise<AzureWorkItem[]> {
   if (ids.length === 0) return [];
 
-  const results: AzureWorkItem[] = [];
+  const fields = [
+    "System.Id",
+    "System.Title",
+    "System.State",
+    "System.AssignedTo",
+    "Microsoft.VSTS.Scheduling.Effort",
+    "Microsoft.VSTS.Common.Priority",
+    "System.Tags",
+    "System.ChangedDate",
+    "Microsoft.VSTS.Scheduling.TargetDate",
+  ].join(",");
 
+  const batches: Promise<AzureWorkItem[]>[] = [];
   for (let i = 0; i < ids.length; i += AZURE_BATCH_SIZE) {
     const batch = ids.slice(i, i + AZURE_BATCH_SIZE);
-    const fields = [
-      "System.Id",
-      "System.Title",
-      "System.State",
-      "System.AssignedTo",
-      "Microsoft.VSTS.Scheduling.Effort",
-      "Microsoft.VSTS.Common.Priority",
-      "System.Tags",
-      "System.ChangedDate",
-      "Microsoft.VSTS.Scheduling.TargetDate",
-    ].join(",");
-
     const url = `https://dev.azure.com/${org}/_apis/wit/workitems?ids=${batch.join(",")}&fields=${fields}&api-version=7.1`;
-    const data = await azureFetch<{ value: AzureWorkItem[] }>(url);
-    results.push(...data.value);
+    batches.push(
+      azureFetch<{ value: AzureWorkItem[] }>(url).then((d) => d.value ?? []),
+    );
   }
 
-  return results;
+  return (await Promise.all(batches)).flat();
 }

@@ -8,11 +8,7 @@ import type {
   TeamMember,
 } from "../../shared/types/index.js";
 import { getInitials } from "../../shared/utils.js";
-
-interface AzureWorkItem {
-  id: number;
-  fields: Record<string, unknown>;
-}
+import type { AzureWorkItem } from "./azure-devops.js";
 
 const STATE_MAP: Record<string, StoryState> = {
   New: "Planned",
@@ -40,7 +36,7 @@ function mapState(azureState: string): StoryState {
 }
 
 function mapPriority(priority: number | null | undefined): Priority {
-  if (!priority) return "Unset";
+  if (priority == null) return "Unset";
   return PRIORITY_MAP[priority] ?? "Unset";
 }
 
@@ -56,6 +52,30 @@ function formatRelativeTime(dateStr: string): string {
   if (diffMin < 60) return `${diffMin} min ago`;
   if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
   return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+}
+
+function computeSprintDays(
+  startDate: string | null | undefined,
+  endDate: string | null | undefined,
+) {
+  const hasValidDates = Boolean(startDate && endDate);
+  const start = hasValidDates ? new Date(startDate!) : null;
+  const end = hasValidDates ? new Date(endDate!) : null;
+  const now = new Date();
+  const msPerDay = 1000 * 60 * 60 * 24;
+
+  return {
+    totalDays:
+      start && end
+        ? Math.ceil((end.getTime() - start.getTime()) / msPerDay)
+        : 0,
+    daysElapsed: start
+      ? Math.max(0, Math.ceil((now.getTime() - start.getTime()) / msPerDay))
+      : 0,
+    daysRemaining: end
+      ? Math.max(0, Math.ceil((end.getTime() - now.getTime()) / msPerDay))
+      : 0,
+  };
 }
 
 export function transformWorkItem(item: AzureWorkItem): ClientStory {
@@ -98,27 +118,10 @@ export function buildSummary(
     endDate: string;
   },
 ): SprintSummary {
-  const hasValidDates = Boolean(iteration.startDate && iteration.endDate);
-  const start = hasValidDates ? new Date(iteration.startDate) : null;
-  const end = hasValidDates ? new Date(iteration.endDate) : null;
-  const now = new Date();
-
-  const totalDays =
-    start && end
-      ? Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-      : 0;
-  const daysElapsed = start
-    ? Math.max(
-        0,
-        Math.ceil((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)),
-      )
-    : 0;
-  const daysRemaining = end
-    ? Math.max(
-        0,
-        Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
-      )
-    : 0;
+  const { totalDays, daysElapsed, daysRemaining } = computeSprintDays(
+    iteration.startDate,
+    iteration.endDate,
+  );
 
   const byState: Record<StoryState, number> = {
     Planned: 0,
@@ -203,34 +206,18 @@ export function buildIterationInfo(iteration: {
   path: string;
   attributes: { startDate: string; finishDate: string };
 }): IterationInfo {
-  const hasValidDates = Boolean(
-    iteration.attributes.startDate && iteration.attributes.finishDate,
+  const { totalDays, daysElapsed, daysRemaining } = computeSprintDays(
+    iteration.attributes.startDate,
+    iteration.attributes.finishDate,
   );
-  const start = hasValidDates ? new Date(iteration.attributes.startDate) : null;
-  const end = hasValidDates ? new Date(iteration.attributes.finishDate) : null;
-  const now = new Date();
-  const totalDays =
-    start && end
-      ? Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-      : 0;
 
   return {
     name: iteration.name,
     path: iteration.path,
     startDate: iteration.attributes.startDate ?? null,
     endDate: iteration.attributes.finishDate ?? null,
-    daysRemaining: end
-      ? Math.max(
-          0,
-          Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
-        )
-      : 0,
-    daysElapsed: start
-      ? Math.max(
-          0,
-          Math.ceil((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)),
-        )
-      : 0,
+    daysRemaining,
+    daysElapsed,
     totalDays,
   };
 }

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
+import { secureHeaders } from "hono/secure-headers";
 import type { AuthEnv } from "./middleware/auth.js";
 import { authMiddleware } from "./middleware/auth.js";
 import { cacheMiddleware } from "./middleware/cache.js";
@@ -11,6 +12,7 @@ import { tenantMap } from "./tenants.js";
 
 const app = new Hono<AuthEnv>().basePath("/api");
 
+app.use("*", secureHeaders());
 app.use(logger());
 
 app.get("/health", (c) => c.json({ status: "ok" }));
@@ -30,8 +32,11 @@ app.get("/health/azure", async (c) => {
       currentIteration: iteration?.name ?? null,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return c.json({ status: "error", error: message }, 502);
+    console.error("[health/azure] Check failed:", err);
+    return c.json(
+      { status: "error", error: "Azure DevOps connectivity check failed" },
+      502,
+    );
   }
 });
 
@@ -41,6 +46,8 @@ app.use("*", cacheMiddleware());
 app.route("/stories", stories);
 app.route("/summary", summary);
 app.route("/iterations", iterations);
+
+app.notFound((c) => c.json({ error: "Not found" }, 404));
 
 app.onError((err, c) => {
   console.error("[api] Unhandled error:", err);

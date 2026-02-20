@@ -1,5 +1,5 @@
 import type { Context, Next } from "hono";
-import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose";
+import { createRemoteJWKSet, jwtVerify } from "jose";
 import type { TenantConfig } from "../tenants.js";
 import { resolveTenant } from "../tenants.js";
 
@@ -29,8 +29,7 @@ export async function authMiddleware(c: Context<AuthEnv>, next: Next) {
   const token = header.slice(7);
 
   try {
-    await jwtVerify(token, jwks);
-    const claims = decodeJwt(token);
+    const { payload: claims } = await jwtVerify(token, jwks);
 
     const orgId = claims.org_id as string | undefined;
     if (!orgId) {

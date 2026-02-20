@@ -43,14 +43,15 @@ bun run format                 # biome check --fix .
   - `lib/chart-colors.ts` — Recharts color palette
 - `server/` — Hono backend
   - `dev.ts` — Development entry point; validates required env vars at startup, then dynamically imports `app.ts`; runs on `PORT` env var or 3001
-  - `app.ts` — Hono app root; registers logger, health routes, `authMiddleware`, `cacheMiddleware()`, and sub-routers; global error handler
+  - `app.ts` — Hono app root; registers `secureHeaders`, logger, health routes, `authMiddleware`, `cacheMiddleware()`, and sub-routers; `notFound` + global error handler
   - `middleware/auth.ts` — WorkOS JWT verification via JWKS; health routes bypass auth; sets `tenant` and `userId` on Hono context; returns 403 for unknown orgs
   - `middleware/cache.ts` — In-memory GET cache; 10-min TTL, ETag + `If-None-Match` support, `Cache-Control: private, max-age=600`; two-pass LRU eviction (expire → oldest single entry) at 500 entries; cache key is `{tenantSlug}:{pathname}:{search}`
-  - `routes/stories.ts` — Fetches current iteration → WIQL → work item details → transforms; returns `ClientStory[]`
-  - `routes/summary.ts` — Same fetch chain as stories; calls `buildSummary`; returns `SprintSummary`
+  - `routes/stories.ts` — Delegates to `fetchCurrentSprintStories`; returns `ClientStory[]`
+  - `routes/summary.ts` — Delegates to `fetchCurrentSprintStories`; calls `buildSummary`; returns `SprintSummary`
   - `routes/iterations.ts` — Fetches current iteration only; calls `buildIterationInfo`; returns `IterationInfo`
-  - `services/azure-devops.ts` — Azure DevOps WIQL client; 30s `AbortController` timeout per request; WIQL injection escaping via `wiqlEscape()`; 200-item batch limit for work item details; structured `[azure]` log lines on error
-  - `services/transform.ts` — `transformWorkItem()` (AzureWorkItem → ClientStory), `buildSummary()` (stories + iteration metadata → SprintSummary including `teamMembers`), `buildIterationInfo()` (iteration → IterationInfo)
+  - `services/azure-devops.ts` — Azure DevOps WIQL client; 30s `AbortController` timeout per request; WIQL injection escaping via `wiqlEscape()`; 200-item parallel batch fetches; exports `AzureWorkItem` and `AzureIteration` types; redacted `[azure]` log lines on error
+  - `services/transform.ts` — `transformWorkItem()` (AzureWorkItem → ClientStory), `buildSummary()` / `buildIterationInfo()` (both use shared `computeSprintDays` helper); imports `AzureWorkItem` from `azure-devops.ts`
+  - `services/sprint.ts` — `fetchCurrentSprintStories(tenant)` — shared fetch chain (iteration → WIQL → work item details → transform) used by stories and summary routes
   - `tenants.ts` — `TenantConfig` (`slug`, `project`, `team`); `tenantMap` (orgId → config); `resolveTenant(orgId)`
 - `shared/` — Types and utilities shared between client and server
   - `types/index.ts` — `ClientStory`, `SprintSummary`, `StoryState`, `Priority`, `AssigneeSummary`, `TeamMember`, `IterationInfo`

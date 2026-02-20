@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @font-face {
@@ -14,8 +14,8 @@
 @theme {
   /* ── Fonts ── */
   --font-heading: "Onsite Extended", sans-serif;
-  --font-body: "IBM Plex Mono", monospace;
-  --font-mono: "IBM Plex Mono", monospace;
+  --font-body: "Host Grotesk", sans-serif;
+  --font-mono: "Host Grotesk", sans-serif;
 
   /* ── Brand palette ── */
   --color-soft-sky: #aecceb;
@@ -95,7 +95,7 @@
 }
 
 html {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 body {

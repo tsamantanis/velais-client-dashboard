@@ -46,7 +46,7 @@ export function App() {
           <button
             type="button"
             onClick={() => signIn()}
-            className="bg-interactive text-off-white hover:opacity-90 rounded-sm px-4 py-2 font-mono text-sm font-semibold tracking-[0.06em] uppercase"
+            className="bg-interactive text-off-white hover:opacity-90 rounded-sm px-4 py-2 text-sm font-semibold tracking-[0.06em] uppercase"
           >
             Sign In
           </button>
@@ -116,7 +116,7 @@ function Dashboard({
         <button
           type="button"
           onClick={() => setView("kanban")}
-          className={`rounded-sm px-3 py-1.5 font-mono text-sm font-medium tracking-[0.06em] uppercase transition-colors ${
+          className={`rounded-sm px-3 py-1.5 text-sm font-medium tracking-[0.06em] uppercase transition-colors ${
             view === "kanban"
               ? "bg-bg-card-hover text-text-accent border-b-2 border-interactive"
               : "text-text-secondary hover:text-text-primary"
@@ -127,7 +127,7 @@ function Dashboard({
         <button
           type="button"
           onClick={() => setView("table")}
-          className={`rounded-sm px-3 py-1.5 font-mono text-sm font-medium tracking-[0.06em] uppercase transition-colors ${
+          className={`rounded-sm px-3 py-1.5 text-sm font-medium tracking-[0.06em] uppercase transition-colors ${
             view === "table"
               ? "bg-bg-card-hover text-text-accent border-b-2 border-interactive"
               : "text-text-secondary hover:text-text-primary"

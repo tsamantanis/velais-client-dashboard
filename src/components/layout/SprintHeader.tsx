@@ -29,11 +29,11 @@ export function SprintHeader({ summary, isLoading }: SprintHeaderProps) {
         <h2 className="font-heading text-lg font-semibold tracking-[0.02em] text-text-primary">
           {summary.sprintName}
         </h2>
-        <span className="font-mono text-sm text-text-accent">
+        <span className="text-sm text-text-accent">
           {summary.daysRemaining} days remaining
         </span>
       </div>
-      <p className="mb-3 font-mono text-sm text-text-secondary tracking-[0.03em]">
+      <p className="mb-3 text-sm text-text-secondary tracking-[0.03em]">
         {summary.startDate && summary.endDate
           ? `${new Date(summary.startDate).toLocaleDateString()} — ${new Date(summary.endDate).toLocaleDateString()} · `
           : "No dates set · "}
@@ -45,7 +45,7 @@ export function SprintHeader({ summary, isLoading }: SprintHeaderProps) {
           style={{ width: `${progressPct}%` }}
         />
       </div>
-      <p className="mt-1 font-mono text-xs text-text-secondary tracking-[0.03em]">
+      <p className="mt-1 text-xs text-text-secondary tracking-[0.03em]">
         {summary.storyPoints.completed}/{summary.storyPoints.total} story points
         ({summary.progress}%)
       </p>

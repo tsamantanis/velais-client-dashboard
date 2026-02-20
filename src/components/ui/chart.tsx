@@ -227,12 +227,12 @@ function ChartTooltipContent({
                     >
                       <div className="grid gap-1.5">
                         {nestLabel ? tooltipLabel : null}
-                        <span className="text-text-secondary font-mono text-xs">
+                        <span className="text-text-secondary text-xs">
                           {itemConfig?.label || item.name}
                         </span>
                       </div>
                       {item.value && (
-                        <span className="text-text-primary font-mono font-medium tabular-nums">
+                        <span className="text-text-primary font-medium tabular-nums">
                           {item.value.toLocaleString()}
                         </span>
                       )}
@@ -284,7 +284,7 @@ function ChartLegendContent({
             <div
               key={item.value}
               className={cn(
-                "[&>svg]:text-text-secondary text-text-secondary font-mono text-xs flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3",
+                "[&>svg]:text-text-secondary text-text-secondary text-xs flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3",
               )}
             >
               {itemConfig?.icon && !hideIcon ? (

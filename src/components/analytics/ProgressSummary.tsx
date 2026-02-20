@@ -17,7 +17,7 @@ export function ProgressSummary({ summary }: ProgressSummaryProps) {
 
   return (
     <div className="bg-bg-card border border-border-subtle rounded-md px-5 py-4">
-      <h4 className="mb-2 font-mono text-sm font-semibold text-text-secondary tracking-[0.06em] uppercase">
+      <h4 className="mb-2 text-sm font-semibold text-text-secondary tracking-[0.06em] uppercase">
         Story Points
       </h4>
       <ChartContainer
@@ -53,10 +53,10 @@ export function ProgressSummary({ summary }: ProgressSummaryProps) {
           </text>
         </RadialBarChart>
       </ChartContainer>
-      <p className="mt-1 text-center font-mono text-sm text-text-secondary">
+      <p className="mt-1 text-center text-sm text-text-secondary">
         {storyPoints.completed}/{storyPoints.total} points
       </p>
-      <div className="mt-1 text-center font-mono text-xs text-text-tertiary">
+      <div className="mt-1 text-center text-xs text-text-tertiary">
         <span>In progress: {storyPoints.inProgress}</span>
         {" · "}
         <span>Remaining: {storyPoints.remaining}</span>

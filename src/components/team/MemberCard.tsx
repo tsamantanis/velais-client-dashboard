@@ -10,10 +10,8 @@ export function MemberCard({ member }: MemberCardProps) {
     <div className="flex items-center gap-3 bg-bg-card border border-border-subtle rounded-md px-5 py-3">
       <Avatar initials={member.initials} />
       <div>
-        <p className="font-mono text-sm font-medium text-text-primary">
-          {member.name}
-        </p>
-        <p className="font-mono text-xs text-text-secondary">
+        <p className="text-sm font-medium text-text-primary">{member.name}</p>
+        <p className="text-xs text-text-secondary">
           {member.storiesCount} stories · {member.pointsCompleted}/
           {member.pointsTotal} pts
         </p>

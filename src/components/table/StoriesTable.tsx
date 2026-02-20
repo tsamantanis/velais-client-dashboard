@@ -135,10 +135,8 @@ export function StoriesTable({ stories, isLoading }: StoriesTableProps) {
         <TableBody>
           {filtered.map((story) => (
             <TableRow key={story.id}>
-              <TableCell className="text-text-secondary font-mono">
-                {story.id}
-              </TableCell>
-              <TableCell className="text-text-primary font-mono font-medium">
+              <TableCell className="text-text-secondary">{story.id}</TableCell>
+              <TableCell className="text-text-primary font-medium">
                 {story.title}
               </TableCell>
               <TableCell>
@@ -146,10 +144,10 @@ export function StoriesTable({ stories, isLoading }: StoriesTableProps) {
                   {story.state}
                 </Badge>
               </TableCell>
-              <TableCell className="text-text-primary font-mono text-sm">
+              <TableCell className="text-text-primary text-sm">
                 {story.assignee}
               </TableCell>
-              <TableCell className="text-text-secondary font-mono text-sm tracking-[0.03em]">
+              <TableCell className="text-text-secondary text-sm tracking-[0.03em]">
                 {story.lastUpdated}
               </TableCell>
             </TableRow>

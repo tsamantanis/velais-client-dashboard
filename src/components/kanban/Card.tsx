@@ -14,7 +14,7 @@ export function KanbanCard({ story }: KanbanCardProps) {
   return (
     <Card className="gap-0 py-0">
       <CardContent className="px-4 pt-4 pb-3">
-        <p className="font-mono text-sm font-semibold text-text-primary leading-snug">
+        <p className="text-sm font-semibold text-text-primary leading-snug">
           {story.title}
         </p>
       </CardContent>
@@ -31,7 +31,7 @@ export function KanbanCard({ story }: KanbanCardProps) {
           <TooltipContent>{story.assignee}</TooltipContent>
         </Tooltip>
         {story.effort > 0 && (
-          <Badge className="bg-bg-surface text-text-secondary font-mono text-xs rounded-sm">
+          <Badge className="bg-bg-surface text-text-secondary text-xs rounded-sm">
             {story.effort} pts
           </Badge>
         )}

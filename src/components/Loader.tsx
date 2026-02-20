@@ -215,7 +215,7 @@ export function Loader({ dataReady, onComplete }: LoaderProps) {
           />
         </svg>
         <div
-          className="font-mono text-md text-text-secondary tracking-[0.05em] min-h-[1.2em] mt-6"
+          className="text-md text-text-secondary tracking-[0.05em] min-h-[1.2em] mt-6"
           ref={statusRef}
         >
           {MESSAGES[0]}

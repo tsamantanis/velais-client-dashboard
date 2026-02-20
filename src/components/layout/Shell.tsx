@@ -34,7 +34,7 @@ export function Shell({
         </div>
         {user && onSignOut && (
           <div className="flex items-center gap-3 shrink-0 ml-4">
-            <span className="font-mono text-sm text-text-secondary max-md:hidden">
+            <span className="text-sm text-text-secondary max-md:hidden">
               {user.firstName} {user.lastName}
             </span>
             <button

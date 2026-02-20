@@ -1,8 +1,9 @@
 import { useAuth } from "@workos-inc/authkit-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { AssigneeBreakdown } from "./components/analytics/AssigneeBreakdown.js";
 import { StateBreakdown } from "./components/analytics/StateBreakdown.js";
 import { Board } from "./components/kanban/Board.js";
+import { Loader } from "./components/Loader.js";
 import { Shell } from "./components/layout/Shell.js";
 import { StoriesTable } from "./components/table/StoriesTable.js";
 import { TooltipProvider } from "./components/ui/tooltip.js";
@@ -20,11 +21,15 @@ export function App() {
   } = useAuth();
   setGetAccessToken(getAccessToken);
 
-  if (authLoading) {
+  const [showLoader, setShowLoader] = useState(true);
+
+  const handleLoaderComplete = useCallback(() => {
+    setShowLoader(false);
+  }, []);
+
+  if (showLoader) {
     return (
-      <Shell>
-        <p className="text-text-secondary">Loading...</p>
-      </Shell>
+      <Loader dataReady={!authLoading} onComplete={handleLoaderComplete} />
     );
   }
 
@@ -52,7 +57,7 @@ export function App() {
 
   return (
     <TooltipProvider>
-      <Shell user={user} onSignOut={() => signOut()}>
+      <Shell user={user} onSignOut={() => signOut()} animate>
         <Dashboard />
       </Shell>
     </TooltipProvider>
@@ -68,10 +73,13 @@ function Dashboard() {
     <>
       {summary && (
         <>
-          <h3 className="mb-3 font-heading text-lg font-semibold tracking-[0.12em] uppercase text-text-primary">
+          <h3
+            data-gsap="title"
+            className="mb-3 font-heading text-lg font-semibold tracking-[0.12em] uppercase text-text-primary"
+          >
             Analytics
           </h3>
-          <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* <ProgressSummary summary={summary} /> */}
             <StateBreakdown byState={summary.byState} />
             <AssigneeBreakdown byAssignee={summary.byAssignee} />
@@ -79,7 +87,10 @@ function Dashboard() {
         </>
       )}
 
-      <div className="mb-4 inline-flex bg-bg-surface border border-border-subtle rounded-sm p-0.5">
+      <div
+        data-gsap="subtitle"
+        className="mb-4 inline-flex bg-bg-surface border border-border-subtle rounded-sm p-0.5"
+      >
         <button
           type="button"
           onClick={() => setView("kanban")}
@@ -104,11 +115,13 @@ function Dashboard() {
         </button>
       </div>
 
-      {view === "kanban" ? (
-        <Board stories={stories} isLoading={storiesLoading} />
-      ) : (
-        <StoriesTable stories={stories} isLoading={storiesLoading} />
-      )}
+      <div data-gsap="section-label">
+        {view === "kanban" ? (
+          <Board stories={stories} isLoading={storiesLoading} />
+        ) : (
+          <StoriesTable stories={stories} isLoading={storiesLoading} />
+        )}
+      </div>
     </>
   );
 }

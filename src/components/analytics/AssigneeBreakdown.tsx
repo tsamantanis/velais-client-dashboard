@@ -25,7 +25,10 @@ export function AssigneeBreakdown({ byAssignee }: AssigneeBreakdownProps) {
   }));
 
   return (
-    <div className="bg-bg-card border border-border-subtle rounded-md px-5 py-4">
+    <div
+      data-gsap="stat-cell"
+      className="bg-bg-card border border-border-subtle rounded-md px-5 py-4"
+    >
       <h4 className="mb-2 font-mono text-sm font-semibold text-text-secondary tracking-[0.06em] uppercase">
         By Assignee
       </h4>

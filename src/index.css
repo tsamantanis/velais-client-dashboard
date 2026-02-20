@@ -130,6 +130,11 @@ h6 {
   border-radius: 9999px;
 }
 
+/* ── GSAP compositing layer promotion ── */
+[data-gsap] {
+  will-change: transform, opacity;
+}
+
 /* ── Pulse dot animation ── */
 @keyframes pulse-dot {
   0%,

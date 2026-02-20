@@ -32,13 +32,16 @@ export function StateBreakdown({ byState }: StateBreakdownProps) {
   );
 
   return (
-    <div className="bg-bg-card border border-border-subtle rounded-md px-5 py-4">
+    <div
+      data-gsap="stat-cell"
+      className="bg-bg-card border border-border-subtle rounded-md px-5 py-4"
+    >
       <h4 className="mb-2 font-mono text-sm font-semibold text-text-secondary tracking-[0.06em] uppercase">
         By State
       </h4>
       <ChartContainer
         config={chartConfig}
-        className="mx-auto aspect-square max-h-[220px]"
+        className="mx-auto aspect-square max-w-[90%]"
       >
         <PieChart>
           <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />

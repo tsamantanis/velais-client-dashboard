@@ -1,15 +1,27 @@
 import type { ReactNode } from "react";
+import { useCascadeAnimation } from "@/hooks/useCascadeAnimation.js";
 
 interface ShellProps {
   children: ReactNode;
   user?: { firstName?: string | null; lastName?: string | null } | null;
   onSignOut?: () => void;
+  animate?: boolean;
 }
 
-export function Shell({ children, user, onSignOut }: ShellProps) {
+export function Shell({
+  children,
+  user,
+  onSignOut,
+  animate = false,
+}: ShellProps) {
+  const containerRef = useCascadeAnimation(animate);
+
   return (
-    <div className="min-h-screen bg-bg-deep">
-      <header className="sticky top-0 z-100 flex items-center justify-between border-b border-border-subtle h-14 px-8 max-md:px-4 backdrop-blur-[12px]">
+    <div ref={containerRef} className="min-h-screen bg-bg-deep">
+      <header
+        data-gsap="header"
+        className="sticky top-0 z-100 flex items-center justify-between border-b border-border-subtle h-14 px-8 max-md:px-4 backdrop-blur-[12px]"
+      >
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-interactive rounded-sm" />
           <h1 className="font-heading text-lg font-semibold tracking-[0.12em] uppercase text-text-primary">

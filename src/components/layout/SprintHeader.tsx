@@ -21,7 +21,10 @@ export function SprintHeader({ summary, isLoading }: SprintHeaderProps) {
   const progressPct = Math.min(summary.progress, 100);
 
   return (
-    <div className="mb-6 bg-bg-card border border-border-subtle rounded-md overflow-hidden px-5 py-4">
+    <div
+      data-gsap="stat-cell"
+      className="mb-6 bg-bg-card border border-border-subtle rounded-md overflow-hidden px-5 py-4"
+    >
       <div className="mb-2 flex items-center justify-between">
         <h2 className="font-heading text-lg font-semibold tracking-[0.02em] text-text-primary">
           {summary.sprintName}

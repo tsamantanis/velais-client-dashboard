@@ -9,7 +9,10 @@ interface ColumnProps {
 
 export function Column({ state, stories }: ColumnProps) {
   return (
-    <div className="flex min-w-[220px] flex-1 flex-col bg-bg-panel border border-border-subtle rounded-md p-2">
+    <div
+      data-gsap="card"
+      className="flex min-w-[220px] flex-1 flex-col bg-bg-panel border border-border-subtle rounded-md p-2"
+    >
       <div className="mb-2 flex items-center gap-2">
         <span className="font-mono text-xs font-semibold tracking-[0.06em] uppercase text-text-secondary">
           {state}

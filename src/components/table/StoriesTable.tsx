@@ -18,7 +18,7 @@ interface StoriesTableProps {
   isLoading: boolean;
 }
 
-type SortKey = "state" | "assignee" | "effort" | "priority";
+type SortKey = "state" | "assignee" | "priority";
 type SortDir = "asc" | "desc";
 
 const PRIORITY_ORDER = { Critical: 0, High: 1, Medium: 2, Low: 3, Unset: 4 };
@@ -63,9 +63,6 @@ export function StoriesTable({ stories, isLoading }: StoriesTableProps) {
         case "assignee":
           cmp = a.assignee.localeCompare(b.assignee);
           break;
-        case "effort":
-          cmp = a.effort - b.effort;
-          break;
         case "priority":
           cmp = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
           break;
@@ -102,7 +99,7 @@ export function StoriesTable({ stories, isLoading }: StoriesTableProps) {
   if (!stories) return null;
 
   return (
-    <div className="mb-6">
+    <div data-gsap="card" className="mb-6">
       <h3 className="mb-3 font-heading text-lg font-semibold tracking-[0.12em] uppercase text-text-primary">
         Stories
       </h3>
@@ -132,12 +129,6 @@ export function StoriesTable({ stories, isLoading }: StoriesTableProps) {
             >
               Assignee{sortIndicator("assignee")}
             </TableHead>
-            <TableHead
-              className="cursor-pointer"
-              onClick={() => toggleSort("effort")}
-            >
-              Effort{sortIndicator("effort")}
-            </TableHead>
             <TableHead>Updated</TableHead>
           </TableRow>
         </TableHeader>
@@ -157,9 +148,6 @@ export function StoriesTable({ stories, isLoading }: StoriesTableProps) {
               </TableCell>
               <TableCell className="text-text-primary font-mono text-sm">
                 {story.assignee}
-              </TableCell>
-              <TableCell className="text-text-primary font-mono text-sm">
-                {story.effort || "—"}
               </TableCell>
               <TableCell className="text-text-secondary font-mono text-sm tracking-[0.03em]">
                 {story.lastUpdated}
